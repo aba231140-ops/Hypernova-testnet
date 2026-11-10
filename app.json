@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "HYPERNOVA",
+    "slug": "hypernova-testnet",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "platforms": ["android"],
+    "android": {
+      "package": "com.hypernova.testnet"
+    }
+  }
+}
