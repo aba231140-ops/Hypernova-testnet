@@ -53,8 +53,21 @@ export default function App() {
     try {
       const result = await getWalletBalance(walletAddress);
       setBalance(result.toFixed(4));
+      setError("");
     } catch (e) {
       setError("Impossible de lire le solde HYPE.");
+    }
+  }
+
+  async function manualRefresh() {
+    if (!address || loading) return;
+
+    try {
+      setLoading(true);
+      setError("");
+      await refreshBalance(address);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -214,14 +227,28 @@ export default function App() {
           </Text>
         </TouchableOpacity>
       ) : (
-        <TouchableOpacity
-          style={styles.button}
-          onPress={disconnectWallet}
-        >
-          <Text style={styles.buttonText}>
-            DÉCONNECTER
-          </Text>
-        </TouchableOpacity>
+        <>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={manualRefresh}
+            disabled={loading}
+          >
+            <Text style={styles.buttonText}>
+              {loading
+                ? "ACTUALISATION..."
+                : "ACTUALISER LE SOLDE"}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={disconnectWallet}
+          >
+            <Text style={styles.buttonText}>
+              DÉCONNECTER
+            </Text>
+          </TouchableOpacity>
+        </>
       )}
 
       {loading && (
@@ -299,7 +326,7 @@ const styles = StyleSheet.create({
     padding: 17,
     borderRadius: 12,
     width: "100%",
-    marginTop: 25
+    marginTop: 15
   },
   buttonText: {
     color: "#FFFFFF",
@@ -317,4 +344,5 @@ const styles = StyleSheet.create({
     fontSize: 11
   }
 });
-            
+        
+      
