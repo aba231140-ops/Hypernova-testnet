@@ -11,6 +11,7 @@ const emptyModule = path.resolve(
 
 config.resolver.extraNodeModules = {
   stream: require.resolve("readable-stream"),
+  querystring: require.resolve("querystring-es3"),
   crypto: emptyModule,
   http: emptyModule,
   https: emptyModule,
