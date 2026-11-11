@@ -29,9 +29,6 @@ function getClient() {
           [CHAIN_ID]: NETWORK.rpcUrl
         }
       },
-      ui: {
-        preferExtension: false
-      },
       mobile: {
         preferredOpenLink: (deeplink) =>
           Linking.openURL(deeplink)
