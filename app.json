@@ -4,6 +4,7 @@
     "name": "HYPERNOVA",
     "slug": "hypernova-testnet-",
     "version": "1.0.0",
+    "scheme": "hypernova",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "platforms": [
