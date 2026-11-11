@@ -263,7 +263,7 @@ export default function App() {
           {error}
         </Text>
       )}
-
+      <AdvertisingSection />
       <Text style={styles.footer}>
         HYPERNOVA • TESTNET v1.0
       </Text>
