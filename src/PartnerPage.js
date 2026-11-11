@@ -67,7 +67,7 @@ export default function PartnerPage({ onBack }) {
               </Text>
             </TouchableOpacity>
           </View>
-        ))}
+                )))}
       </ScrollView>
   );
 }
