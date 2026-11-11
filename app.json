@@ -1,3 +1,4 @@
+
 {
   "expo": {
     "name": "HYPERNOVA",
@@ -5,9 +6,16 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
-    "platforms": ["android"],
+    "platforms": [
+      "android"
+    ],
     "android": {
       "package": "com.hypernova.testnet"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "6e03ae8f-6e5e-439a-9099-6a093a4b9441"
+      }
     }
   }
 }
