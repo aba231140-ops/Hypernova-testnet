@@ -1,6 +1,7 @@
 import { getAdsConfig } from "./adsManager";
 import { getActivePartnerAds } from "./partnerAds";
 import { canShowAd } from "./adPlacements";
+import { isAdProviderReady } from "./adProvider";
 
 export function getHomeAdvertising(
   isTransactionActive = false
@@ -17,11 +18,13 @@ export function getHomeAdvertising(
   return {
     automaticAds:
       config.automaticAds.enabled &&
-      Boolean(config.automaticAds.provider),
+      isAdProviderReady(),
 
-    partnerAds: canShowAd("partnerProjects")
-      ? getActivePartnerAds()
-      : [],
+    partnerAds:
+      config.directPartners.enabled &&
+      canShowAd("partnerProjects")
+        ? getActivePartnerAds()
+        : [],
   };
 }
 
@@ -31,8 +34,7 @@ export function getAdvertisingStatus() {
   return {
     enabled: config.enabled,
     automaticAdsEnabled: config.automaticAds.enabled,
-    automaticProviderConfigured:
-      Boolean(config.automaticAds.provider),
     directPartnersEnabled: config.directPartners.enabled,
+    providerReady: isAdProviderReady(),
   };
 }
