@@ -1,4 +1,4 @@
-
+import AdvertisingSection from "./src/AdvertisingSection";
 import React, { useEffect, useRef, useState } from "react";
 import {
   View,
