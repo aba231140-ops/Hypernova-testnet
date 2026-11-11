@@ -12,7 +12,7 @@ import {
 
 import { createEVMClient } from "@metamask/connect-evm";
 
-import { getWalletBalance } from "./src/network";
+import { getNativeBalance } from "./src/multiNetworkBalance";
 import { NETWORK } from "./src/config";
 import PartnerPage from "./src/PartnerPage";
 
