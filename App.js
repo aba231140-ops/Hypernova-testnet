@@ -81,7 +81,7 @@ export default function App() {
 
       setChainId(networkId);
 
-      const walletBalance = await getWalletBalance(walletAddress);
+      const walletBalance = await getNativeBalance(walletAddress, "hyperevm");
 
       setBalance(String(walletBalance));
     } catch (err) {
