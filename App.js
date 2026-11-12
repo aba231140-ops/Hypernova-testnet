@@ -31,6 +31,60 @@ export default function App() {
     initializeWallet();
   }, []);
 
+async function connectWallet() {
+  try {
+    setLoading(true);
+    setError("");
+
+    let client = clientRef.current;
+
+    if (!client) {
+      client = await initializeWallet();
+    }
+
+    if (!client) {
+      throw new Error("Client wallet indisponible.");
+    }
+
+    const { accounts, chainId } = await client.connect({
+      chainIds: [
+        "0x3e6",
+        "0xaa36a7",
+        "0x61",
+        "0x13882",
+        "0x66eee"
+      ]
+    });
+
+    if (!accounts || accounts.length === 0) {
+      throw new Error("Aucun compte connecté.");
+    }
+
+    const walletAddress = accounts[0];
+
+    setAddress(walletAddress);
+    setChainId(chainId);
+
+    if (chainId === "0x3e6") {
+      const walletBalance = await getNativeBalance(
+        walletAddress,
+        "hyperevm"
+      );
+      setBalance(String(walletBalance));
+    } else {
+      setBalance("0");
+    }
+
+  } catch (err) {
+    console.log("Wallet connection:", err);
+    setError(
+      err.message || "Connexion impossible au portefeuille."
+    );
+  } finally {
+    setLoading(false);
+  }
+}
+  
   async function initializeWallet() {
   try {
     setLoading(true);
