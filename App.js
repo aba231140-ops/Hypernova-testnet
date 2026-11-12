@@ -65,50 +65,6 @@ export default function App() {
   }
   }
 
-  async function connectWallet() {
-    try {
-      setLoading(true);
-      setError("");
-
-      if (!clientRef.current) {
-        await initializeWallet();
-      }
-
-      const client = clientRef.current;
-
-      if (!client) {
-        throw new Error("Client wallet indisponible.");
-      }
-
-      const accounts = await client.request({
-        method: "eth_requestAccounts",
-      });
-
-      if (!accounts || accounts.length === 0) {
-        throw new Error("Aucun compte connecté.");
-      }
-
-      const walletAddress = accounts[0];
-
-      setAddress(walletAddress);
-
-      const networkId = await client.request({
-        method: "eth_chainId",
-      });
-
-      setChainId(networkId);
-
-      const walletBalance = await getNativeBalance(walletAddress, "hyperevm");
-
-      setBalance(String(walletBalance));
-    } catch (err) {
-      console.log("Wallet connection:", err);
-      setError("Connexion impossible. Vérifie MetaMask et le réseau.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   function disconnectWallet() {
     setAddress("");
     setBalance("0");
