@@ -32,20 +32,37 @@ export default function App() {
   }, []);
 
   async function initializeWallet() {
-    try {
-      setLoading(true);
-      setError("");
+  try {
+    setLoading(true);
+    setError("");
 
-      const client = await createEVMClient();
+    const client = await createEVMClient({
+      dapp: {
+        name: "HYPERNOVA",
+        url: "https://hypernova.app"
+      },
+      api: {
+        supportedNetworks: {
+          "0x3e6": "https://rpc.hyperliquid-testnet.xyz/evm",
+          "0xaa36a7": "https://rpc.sepolia.org",
+          "0x61": "https://bsc-testnet-dataseed.bnbchain.org",
+          "0x13882": "https://polygon-amoy.g.alchemy.com/v2/demo",
+          "0x66eee": "https://sepolia-rollup.arbitrum.io/rpc"
+        }
+      }
+    });
 
-      clientRef.current = client;
-      setReady(true);
-    } catch (err) {
-      console.log("Wallet initialization:", err);
-      setError("Initialisation du portefeuille impossible.");
-    } finally {
-      setLoading(false);
-    }
+    clientRef.current = client;
+    setReady(true);
+
+    return client;
+  } catch (err) {
+    console.log("Wallet initialization:", err);
+    setError("Initialisation du portefeuille impossible.");
+    return null;
+  } finally {
+    setLoading(false);
+  }
   }
 
   async function connectWallet() {
