@@ -26,7 +26,7 @@ export default function App() {
   const [showPartnerPage, setShowPartnerPage] = useState(false);
 
   const clientRef = useRef(null);
-
+const providerRef = useRef(null);
   useEffect(() => {
     initializeWallet();
   }, []);
