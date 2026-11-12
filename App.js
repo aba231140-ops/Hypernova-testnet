@@ -154,6 +154,31 @@ async function initializeWallet() {
 
     clientRef.current = client;
     providerRef.current = client.getProvider();
+    const provider = providerRef.current;
+
+provider.on("connect", (info) => {
+  console.log("MetaMask connecté :", info);
+
+  provider.request({
+    method: "eth_accounts"
+  }).then((accounts) => {
+    if (accounts && accounts.length > 0) {
+      setAddress(accounts[0]);
+    }
+  }).catch((err) => {
+    console.log("Erreur récupération compte :", err);
+  });
+});
+
+provider.on("accountsChanged", (accounts) => {
+  console.log("Comptes MetaMask modifiés :", accounts);
+
+  if (accounts && accounts.length > 0) {
+    setAddress(accounts[0]);
+  } else {
+    setAddress("");
+  }
+});
     setReady(true);
 
     return client;
