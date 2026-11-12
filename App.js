@@ -74,11 +74,17 @@ async function connectWallet() {
       });
     }
 
-    if (!accounts || accounts.length === 0) {
-      throw new Error(
-        "MetaMask est autorisé, mais aucune adresse n'est renvoyée à HYPERNOVA."
-      );
-    }
+    const selectedAccount = client.getAccount();
+
+if (selectedAccount) {
+  accounts = [selectedAccount];
+}
+
+if (!accounts || accounts.length === 0) {
+  throw new Error(
+    "MetaMask est autorisé, mais HYPERNOVA ne reçoit toujours aucune adresse."
+  );
+}
 
     if (!activeChainId) {
       activeChainId = await provider.request({
