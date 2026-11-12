@@ -159,15 +159,13 @@ async function initializeWallet() {
 provider.on("connect", (info) => {
   console.log("MetaMask connecté :", info);
 
-  provider.request({
-    method: "eth_accounts"
-  }).then((accounts) => {
-    if (accounts && accounts.length > 0) {
-      setAddress(accounts[0]);
-    }
-  }).catch((err) => {
-    console.log("Erreur récupération compte :", err);
-  });
+  const accounts = info?.accounts || [];
+
+  if (accounts.length > 0) {
+    setAddress(accounts[0]);
+    setChainId(info.chainId || "");
+    setError("");
+  }
 });
 
 provider.on("accountsChanged", (accounts) => {
