@@ -1,449 +1,246 @@
-
-import React, { useEffect, useRef, useState } from "react";
-
+import React, { useEffect, useMemo, useState } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  Linking,
+  ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity,
+  View, RefreshControl, Linking
 } from "react-native";
-
-import { createEVMClient } from "@metamask/connect-evm";
-
+import {
+  AppKit as AppKitModal, AppKitProvider, useAccount, useAppKit
+} from "@reown/appkit-react-native";
+import { appKit, HYPERNOVA_NETWORKS } from "./src/AppKitConfig";
 import { getNativeBalance } from "./src/multiNetworkBalance";
-import { NETWORK } from "./src/config";
 import PartnerPage from "./src/PartnerPage";
 
-export default function App() {
-  const [address, setAddress] = useState("");
-  const [balance, setBalance] = useState("0");
-  const [chainId, setChainId] = useState("");
-  const [ready, setReady] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [showPartnerPage, setShowPartnerPage] = useState(false);
+const RPCS = {
+  998: "https://rpc.hyperliquid-testnet.xyz/evm",
+  11155111: "https://rpc.sepolia.org",
+  97: "https://bsc-testnet-dataseed.bnbchain.org",
+  80002: "https://polygon-amoy.g.alchemy.com/v2/demo",
+  421614: "https://sepolia-rollup.arbitrum.io/rpc"
+};
+const EXPLORERS = {
+  998: "https://testnet.purrsec.com",
+  11155111: "https://sepolia.etherscan.io",
+  97: "https://testnet.bscscan.com",
+  80002: "https://amoy.polygonscan.com",
+  421614: "https://sepolia.arbiscan.io"
+};
+const NAV = ["Accueil", "Marchés", "Explorer", "Faucet", "XP", "Publicités", "Profil"];
 
-  const clientRef = useRef(null);
-const providerRef = useRef(null);
-  useEffect(() => {
-    initializeWallet();
-  }, []);
+async function rpc(chainId, method, params = []) {
+  const url = RPCS[Number(chainId)];
+  if (!url) throw new Error("Réseau non pris en charge.");
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params })
+  });
+  const data = await response.json();
+  if (!response.ok || data.error) throw new Error(data.error?.message || "Erreur RPC.");
+  return data.result;
+}
+function shortAddress(value) {
+  return value ? value.slice(0, 7) + "..." + value.slice(-5) : "";
+}
+function Panel({ title, children }) {
+  return <View style={s.panel}><Text style={s.panelTitle}>{title}</Text>{children}</View>;
+}
+function Action({ title, onPress, secondary = false, disabled = false }) {
+  return <TouchableOpacity disabled={disabled} onPress={onPress}
+    style={[s.action, secondary && s.secondary, disabled && { opacity: 0.45 }]}>
+    <Text style={s.actionText}>{title}</Text>
+  </TouchableOpacity>;
+}
+function Dashboard() {
+  const { open, disconnect, switchNetwork } = useAppKit();
+  const { address, isConnected, chainId, chain } = useAccount();
+  const [tab, setTab] = useState("Accueil");
+  const [balance, setBalance] = useState("—");
+  const [blocks, setBlocks] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const [partnerPage, setPartnerPage] = useState(false);
 
-async function connectWallet() {
-  try {
-    setLoading(true);
-    setError("");
+  const activeChain = Number(chainId || 998);
+  const networkName = chain?.name || (HYPERNOVA_NETWORKS.find(n => n.id === activeChain)?.name || "HyperEVM Testnet");
 
-    let client = clientRef.current;
-
-    if (!client) {
-      client = await initializeWallet();
+  async function refreshChainData() {
+    if (!isConnected || !address || !RPCS[activeChain]) {
+      setBalance("—"); setBlocks([]); setTransactions([]); return;
     }
-
-    if (!client) {
-      throw new Error("Client wallet indisponible.");
-    }
-
-    let accounts = [];
-    let activeChainId = "";
-
+    setBusy(true); setMessage("");
     try {
-      const result = await client.connect({
-        chainIds: [
-          "0x3e6",
-          "0xaa36a7",
-          "0x61",
-          "0x13882",
-          "0x66eee"
-        ]
+      const [bal, latest] = await Promise.all([
+        getNativeBalance(address, activeChain === 998 ? "hyperevm" :
+          activeChain === 11155111 ? "ethereum" :
+          activeChain === 97 ? "bnb" :
+          activeChain === 80002 ? "polygon" : "arbitrum"),
+        rpc(activeChain, "eth_blockNumber")
+      ]);
+      setBalance(String(bal));
+      const height = Number(BigInt(latest));
+      const start = Math.max(0, height - 9);
+      const list = await Promise.all(
+        Array.from({ length: height - start + 1 }, (_, i) =>
+          rpc(activeChain, "eth_getBlockByNumber", ["0x" + (start + i).toString(16), true])
+        )
+      );
+      setBlocks(list.filter(Boolean).reverse());
+      const txs = [];
+      list.slice().reverse().forEach(block => {
+        (block.transactions || []).forEach(tx => {
+          if (tx.from?.toLowerCase() === address.toLowerCase() ||
+              tx.to?.toLowerCase() === address.toLowerCase()) txs.push(tx);
+        });
       });
+      setTransactions(txs.slice(0, 10));
+    } catch (e) {
+      setMessage(e?.message || "Impossible de lire les données blockchain.");
+    } finally { setBusy(false); }
+  }
+  useEffect(() => { refreshChainData(); }, [address, isConnected, chainId]);
 
-      accounts = result?.accounts || [];
-      activeChainId = result?.chainId || "";
-    } catch (connectError) {
-      console.log("Retour connect:", connectError);
-    }
+  async function chooseNetwork(id) {
+    try {
+      const network = HYPERNOVA_NETWORKS.find(n => n.id === id);
+      if (network) await switchNetwork(network);
+    } catch (e) { setMessage("Changement de réseau refusé ou indisponible."); }
+  }
+  async function disconnectWallet() {
+    try { await disconnect("eip155"); setBalance("—"); setMessage(""); }
+    catch (e) { setMessage("Déconnexion impossible."); }
+  }
+  async function openExplorer(url) {
+    try { await Linking.openURL(url); } catch (_) { setMessage("Lien indisponible."); }
+  }
 
-    const provider = client.getProvider();
+  if (partnerPage) return <PartnerPage onBack={() => setPartnerPage(false)} />;
 
-    if (!accounts.length) {
-      accounts = await provider.request({
-        method: "eth_accounts"
-      });
-    }
+  const renderHome = () => <>
+    <Panel title="WALLET GUARDIAN">
+      {isConnected && address ? <>
+        <Text style={s.success}>● Portefeuille connecté</Text>
+        <Text selectable style={s.address}>{address}</Text>
+        <Text style={s.muted}>{networkName} · Chain ID {chainId || "—"}</Text>
+        <Action title="DÉCONNECTER" onPress={disconnectWallet} secondary />
+      </> : <>
+        <Text style={s.muted}>Connexion non custodiale avec les portefeuilles EVM compatibles Reown.</Text>
+        <Action title="CONNECTER MON WALLET" onPress={() => open()} />
+      </>}
+    </Panel>
+    <Panel title="SOLDE DU PORTEFEUILLE">
+      <Text style={s.big}>{balance} {activeChain === 998 ? "HYPE" : (chain?.nativeCurrency?.symbol || "ETH")}</Text>
+      <Text style={s.muted}>Solde public lu sur le réseau sélectionné.</Text>
+      <Action title="ACTUALISER" onPress={refreshChainData} secondary disabled={busy || !isConnected} />
+    </Panel>
+    <Panel title="RÉSEAUX TESTNET">
+      {HYPERNOVA_NETWORKS.map(n => <TouchableOpacity key={n.id} style={s.networkRow}
+        onPress={() => chooseNetwork(n.id)}>
+        <Text style={s.networkName}>{n.name}</Text>
+        <Text style={s.muted}>Chain ID {n.id}{activeChain === n.id ? " · ACTIF" : ""}</Text>
+      </TouchableOpacity>)}
+    </Panel>
+    <Panel title="ACTIVITÉ RÉCENTE">
+      {transactions.length ? transactions.slice(0, 5).map(tx =>
+        <Text key={tx.hash} style={s.listLine}>{shortAddress(tx.from)} → {shortAddress(tx.to)} · {shortAddress(tx.hash)}</Text>
+      ) : <Text style={s.muted}>Les transactions liées à cette adresse apparaîtront ici après lecture des blocs.</Text>}
+    </Panel>
+  </>;
 
-    const selectedAccount = client.getAccount();
+  const renderExplorer = () => <Panel title="EXPLORATEUR — 10 DERNIERS BLOCS">
+    <Text style={s.muted}>Réseau : {networkName}</Text>
+    {busy ? <ActivityIndicator color="#00D5FF" /> : blocks.length ?
+      blocks.map(b => <View key={b.hash} style={s.blockRow}>
+        <Text style={s.networkName}>Bloc #{Number(BigInt(b.number))}</Text>
+        <Text style={s.muted}>{b.transactions?.length || 0} transactions · {new Date(Number(BigInt(b.timestamp)) * 1000).toLocaleString()}</Text>
+      </View>) : <Text style={s.muted}>Connecte un portefeuille sur un réseau testnet pour consulter les blocs.</Text>}
+    <Action title="ACTUALISER LES BLOCS" onPress={refreshChainData} disabled={busy} />
+    {transactions.map(tx => <Text key={tx.hash} style={s.listLine}>Transfert : {shortAddress(tx.from)} → {shortAddress(tx.to)}</Text>)}
+  </Panel>;
 
-if (selectedAccount) {
-  accounts = [selectedAccount];
+  const renderFaucet = () => <Panel title="MULTITOKEN FAUCET">
+    <Text style={s.muted}>Tokens prévus : HYPE · HN-USDT · HN-ETH · HNOVA</Text>
+    <Text style={s.warning}>Le service de distribution sécurisé n'est pas encore connecté.</Text>
+    <Text style={s.muted}>La limite de 12 heures par adresse devra être vérifiée côté serveur avant toute distribution.</Text>
+    <Action title="FAUCET NON ACTIVÉ" disabled />
+  </Panel>;
+
+  const renderXP = () => <Panel title="HYPERNOVA XP">
+    <Text style={s.big}>XP —</Text>
+    <Text style={s.muted}>Bonus quotidien · activités éligibles · historique · classement.</Text>
+    <Text style={s.warning}>Les points définitifs nécessitent une validation serveur anti-fraude. Aucun clic ou affichage publicitaire ne donne de XP.</Text>
+    <Action title="SYSTÈME XP EN PRÉPARATION" disabled />
+  </Panel>;
+
+  const renderAds = () => <Panel title="HYPERNOVA ADS & REVENUE">
+    <Text style={s.muted}>Espaces publicitaires automatiques et campagnes directes de partenaires.</Text>
+    <Text style={s.warning}>Aucun réseau publicitaire ni compte de paiement n'est encore raccordé. Les revenus ne sont donc pas simulés.</Text>
+    <Action title="VOIR NOS PARTENAIRES" onPress={() => setPartnerPage(true)} />
+    <Text style={s.muted}>Les revenus publicitaires resteront séparés des fonds des utilisateurs.</Text>
+  </Panel>;
+
+  const renderProfile = () => <Panel title="PROFIL & SÉCURITÉ">
+    <Text style={s.muted}>Adresse : {address ? shortAddress(address) : "Non connecté"}</Text>
+    <Text style={s.muted}>Réseau : {networkName}</Text>
+    <Text style={s.muted}>HYPERNOVA ne demande jamais de phrase secrète ni de clé privée.</Text>
+    {isConnected ? <Action title="DÉCONNECTER LE WALLET" onPress={disconnectWallet} secondary /> :
+      <Action title="CONNECTER LE WALLET" onPress={() => open()} />}
+  </Panel>;
+
+  const renderTab = () => {
+    if (tab === "Accueil") return renderHome();
+    if (tab === "Explorer") return renderExplorer();
+    if (tab === "Faucet") return renderFaucet();
+    if (tab === "XP") return renderXP();
+    if (tab === "Publicités") return renderAds();
+    if (tab === "Profil") return renderProfile();
+    return <Panel title="MARCHÉS"><Text style={s.muted}>Le marché et le swap seront ajoutés dans une phase ultérieure, après validation de la version testnet.</Text></Panel>;
+  };
+
+  return <ScrollView style={s.screen} contentContainerStyle={s.content}
+    refreshControl={<RefreshControl refreshing={busy} onRefresh={refreshChainData} tintColor="#00D5FF" />}>
+    <Text style={s.logo}>HYPERNOVA</Text>
+    <Text style={s.subtitle}>MULTICHAIN · NON-CUSTODIAL · TESTNET</Text>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.nav}>
+      {NAV.map(item => <TouchableOpacity key={item} onPress={() => setTab(item)}
+        style={[s.navItem, tab === item && s.navActive]}>
+        <Text style={[s.navText, tab === item && s.navTextActive]}>{item}</Text>
+      </TouchableOpacity>)}
+    </ScrollView>
+    {message ? <Text style={s.warning}>{message}</Text> : null}
+    {renderTab()}
+    <Text style={s.footer}>HYPERNOVA © 2026 · VERSION TESTNET UNIQUEMENT</Text>
+  </ScrollView>;
 }
 
-if (!accounts || accounts.length === 0) {
-  throw new Error(
-    "MetaMask est autorisé, mais HYPERNOVA ne reçoit toujours aucune adresse."
-  );
+export default function App() {
+  return <AppKitProvider instance={appKit}><Dashboard /><AppKitModal /></AppKitProvider>;
 }
 
-    if (!activeChainId) {
-      activeChainId = await provider.request({
-        method: "eth_chainId"
-      });
-    }
-
-    const walletAddress = accounts[0];
-
-    setAddress(walletAddress);
-    setChainId(activeChainId);
-
-    if (activeChainId === "0x3e6") {
-      try {
-        const walletBalance = await getNativeBalance(
-          walletAddress,
-          "hyperevm"
-        );
-        setBalance(String(walletBalance));
-      } catch (balanceError) {
-        console.log("Lecture du solde impossible:", balanceError);
-        setBalance("0");
-        setError(
-          "Portefeuille connecté, mais le solde n'a pas pu être chargé."
-        );
-      }
-    } else {
-      setBalance("0");
-    }
-
-  } catch (err) {
-    console.log("Wallet connection:", err);
-    setError(
-      err?.message || "Connexion impossible au portefeuille."
-    );
-  } finally {
-    setLoading(false);
-  }
-}
-async function initializeWallet() {
-  try {
-    setLoading(true);
-    setError("");
-
-    const client = await createEVMClient({
-      dapp: {
-        name: "HYPERNOVA",
-        url: "https://hypernova.app"
-      },
-      api: {
-        supportedNetworks: {
-          "0x3e6": "https://rpc.hyperliquid-testnet.xyz/evm",
-          "0xaa36a7": "https://rpc.sepolia.org",
-          "0x61": "https://bsc-testnet-dataseed.bnbchain.org",
-          "0x13882": "https://polygon-amoy.g.alchemy.com/v2/demo",
-          "0x66eee": "https://sepolia-rollup.arbitrum.io/rpc"
-        }
-      },
-      mobile: {
-        preferredOpenLink: (deeplink) => {
-          Linking.openURL(deeplink).catch((err) => {
-            console.log("Ouverture MetaMask impossible:", err);
-          });
-        }
-      }
-    });
-
-    clientRef.current = client;
-    providerRef.current = client.getProvider();
-    const provider = providerRef.current;
-
-provider.on("connect", (info) => {
-  console.log("MetaMask connecté :", info);
-
-  const accounts = info?.accounts || [];
-
-  if (accounts.length > 0) {
-    setAddress(accounts[0]);
-    setChainId(info.chainId || "");
-    setError("");
-  }
-});
-
-provider.on("accountsChanged", (accounts) => {
-  console.log("Comptes MetaMask modifiés :", accounts);
-
-  if (accounts && accounts.length > 0) {
-    setAddress(accounts[0]);
-  } else {
-    setAddress("");
-  }
-});
-    setReady(true);
-
-    return client;
-
-  } catch (err) {
-    console.log("Wallet initialization:", err);
-    setError("Initialisation du portefeuille impossible.");
-    return null;
-
-  } finally {
-    setLoading(false);
-  }
-}
-  
-  function disconnectWallet() {
-    setAddress("");
-    setBalance("0");
-    setChainId("");
-    setError("");
-  }
-
-  if (showPartnerPage) {
-    return (
-      <PartnerPage
-        onBack={() => setShowPartnerPage(false)}
-      />
-    );
-  }
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.logo}>HYPERNOVA</Text>
-
-      <Text style={styles.subtitle}>
-        MULTICHAIN DECENTRALIZED EXCHANGE
-      </Text>
-
-      <View style={styles.networkCard}>
-        <Text style={styles.networkTitle}>
-          RÉSEAU ACTUEL
-        </Text>
-
-        <Text style={styles.networkName}>
-          HyperEVM Testnet
-        </Text>
-
-        <Text style={styles.networkInfo}>
-          Chain ID : {NETWORK.chainId}
-        </Text>
-      </View>
-
-      <View style={styles.balanceCard}>
-        <Text style={styles.balanceTitle}>
-          SOLDE HYPE
-        </Text>
-
-        <Text style={styles.balance}>
-          {balance} HYPE
-        </Text>
-      </View>
-
-      {address ? (
-        <View style={styles.walletCard}>
-          <Text style={styles.walletTitle}>
-            PORTEFEUILLE CONNECTÉ
-          </Text>
-
-          <Text style={styles.address}>
-            {address}
-          </Text>
-
-          <Text style={styles.chain}>
-            Chain ID : {chainId}
-          </Text>
-
-          <TouchableOpacity
-            style={styles.disconnectButton}
-            onPress={disconnectWallet}
-          >
-            <Text style={styles.buttonText}>
-              DÉCONNECTER
-            </Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <TouchableOpacity
-          style={styles.connectButton}
-          onPress={connectWallet}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={styles.buttonText}>
-              CONNECTER MON WALLET
-            </Text>
-          )}
-        </TouchableOpacity>
-      )}
-
-      {error ? (
-        <Text style={styles.error}>
-          {error}
-        </Text>
-      ) : null}
-
-      <TouchableOpacity
-        style={styles.partnerButton}
-        onPress={() => setShowPartnerPage(true)}
-      >
-        <Text style={styles.buttonText}>
-          VOIR NOS PARTENAIRES
-        </Text>
-      </TouchableOpacity>
-
-      <Text style={styles.footer}>
-        HYPERNOVA © 2026
-      </Text>
-
-      <Text style={styles.disclaimer}>
-        Version de développement - Testnet uniquement
-      </Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#050816",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-  },
-
-  logo: {
-    color: "#00BFFF",
-    fontSize: 34,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-
-  subtitle: {
-    color: "#9AAAC5",
-    fontSize: 10,
-    letterSpacing: 2,
-    marginBottom: 30,
-    textAlign: "center",
-  },
-
-  networkCard: {
-    width: "100%",
-    backgroundColor: "#111B32",
-    padding: 18,
-    borderRadius: 14,
-    marginBottom: 15,
-  },
-
-  networkTitle: {
-    color: "#9AAAC5",
-    fontSize: 11,
-  },
-
-  networkName: {
-    color: "#FFFFFF",
-    fontSize: 19,
-    fontWeight: "bold",
-    marginTop: 8,
-  },
-
-  networkInfo: {
-    color: "#00BFFF",
-    marginTop: 5,
-  },
-
-  balanceCard: {
-    width: "100%",
-    backgroundColor: "#111B32",
-    padding: 22,
-    borderRadius: 14,
-    alignItems: "center",
-    marginBottom: 15,
-  },
-
-  balanceTitle: {
-    color: "#9AAAC5",
-    fontSize: 12,
-  },
-
-  balance: {
-    color: "#00BFFF",
-    fontSize: 27,
-    fontWeight: "bold",
-    marginTop: 10,
-  },
-
-  walletCard: {
-    width: "100%",
-    backgroundColor: "#111B32",
-    padding: 18,
-    borderRadius: 14,
-    marginBottom: 15,
-  },
-
-  walletTitle: {
-    color: "#00BFFF",
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-
-  address: {
-    color: "#FFFFFF",
-    fontSize: 12,
-  },
-
-  chain: {
-    color: "#9AAAC5",
-    marginTop: 8,
-  },
-
-  connectButton: {
-    width: "100%",
-    backgroundColor: "#007BFF",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 15,
-  },
-
-  disconnectButton: {
-    backgroundColor: "#B83245",
-    padding: 13,
-    borderRadius: 10,
-    marginTop: 15,
-  },
-
-  partnerButton: {
-    width: "100%",
-    backgroundColor: "#123B63",
-    borderWidth: 1,
-    borderColor: "#00BFFF",
-    padding: 15,
-    borderRadius: 12,
-    marginTop: 5,
-  },
-
-  buttonText: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-
-  error: {
-    color: "#FF6B6B",
-    textAlign: "center",
-    marginVertical: 10,
-  },
-
-  footer: {
-    color: "#9AAAC5",
-    marginTop: 30,
-    fontSize: 12,
-  },
-
-  disclaimer: {
-    color: "#77849B",
-    fontSize: 10,
-    marginTop: 8,
-  },
+const s = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: "#050816" },
+  content: { padding: 18, paddingTop: 48, paddingBottom: 36 },
+  logo: { color: "#00D5FF", fontSize: 32, fontWeight: "900", textAlign: "center", letterSpacing: 2 },
+  subtitle: { color: "#9AAAC5", fontSize: 9, textAlign: "center", letterSpacing: 2, marginTop: 5, marginBottom: 20 },
+  nav: { marginBottom: 18, flexGrow: 0 },
+  navItem: { paddingVertical: 10, paddingHorizontal: 12, marginRight: 7, borderRadius: 10, backgroundColor: "#111B32" },
+  navActive: { backgroundColor: "#075B91", borderWidth: 1, borderColor: "#00D5FF" },
+  navText: { color: "#AAB8D0", fontSize: 12, fontWeight: "700" },
+  navTextActive: { color: "#FFFFFF" },
+  panel: { backgroundColor: "#111B32", borderWidth: 1, borderColor: "#20385C", borderRadius: 15, padding: 17, marginBottom: 14 },
+  panelTitle: { color: "#00D5FF", fontSize: 13, fontWeight: "900", letterSpacing: 1, marginBottom: 13 },
+  big: { color: "#FFFFFF", fontSize: 26, fontWeight: "900", marginVertical: 8 },
+  address: { color: "#FFFFFF", fontSize: 12, marginVertical: 7 },
+  muted: { color: "#9AAAC5", fontSize: 12, lineHeight: 19, marginTop: 4 },
+  success: { color: "#45D6A0", fontWeight: "800" },
+  warning: { color: "#FFCA76", fontSize: 12, lineHeight: 19, marginVertical: 8 },
+  action: { backgroundColor: "#087DCE", padding: 13, borderRadius: 10, marginTop: 12 },
+  secondary: { backgroundColor: "#34445E" },
+  actionText: { color: "#FFFFFF", textAlign: "center", fontWeight: "900", fontSize: 12 },
+  networkRow: { paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#24334D" },
+  networkName: { color: "#FFFFFF", fontWeight: "800", fontSize: 13 },
+  blockRow: { paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#24334D" },
+  listLine: { color: "#DCE7F7", fontSize: 11, paddingVertical: 7 },
+  footer: { color: "#72819B", textAlign: "center", fontSize: 9, marginTop: 15 }
 });
     
