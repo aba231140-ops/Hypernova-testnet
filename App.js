@@ -46,31 +46,65 @@ async function connectWallet() {
       throw new Error("Client wallet indisponible.");
     }
 
-    const { accounts, chainId } = await client.connect({
-      chainIds: [
-        "0x3e6",
-        "0xaa36a7",
-        "0x61",
-        "0x13882",
-        "0x66eee"
-      ]
-    });
+    let accounts = [];
+    let activeChainId = "";
+
+    try {
+      const result = await client.connect({
+        chainIds: [
+          "0x3e6",
+          "0xaa36a7",
+          "0x61",
+          "0x13882",
+          "0x66eee"
+        ]
+      });
+
+      accounts = result?.accounts || [];
+      activeChainId = result?.chainId || "";
+    } catch (connectError) {
+      console.log("Retour connect:", connectError);
+    }
+
+    const provider = client.getProvider();
+
+    if (!accounts.length) {
+      accounts = await provider.request({
+        method: "eth_accounts"
+      });
+    }
 
     if (!accounts || accounts.length === 0) {
-      throw new Error("Aucun compte connecté.");
+      throw new Error(
+        "MetaMask est autorisé, mais aucune adresse n'est renvoyée à HYPERNOVA."
+      );
+    }
+
+    if (!activeChainId) {
+      activeChainId = await provider.request({
+        method: "eth_chainId"
+      });
     }
 
     const walletAddress = accounts[0];
 
     setAddress(walletAddress);
-    setChainId(chainId);
+    setChainId(activeChainId);
 
-    if (chainId === "0x3e6") {
-      const walletBalance = await getNativeBalance(
-        walletAddress,
-        "hyperevm"
-      );
-      setBalance(String(walletBalance));
+    if (activeChainId === "0x3e6") {
+      try {
+        const walletBalance = await getNativeBalance(
+          walletAddress,
+          "hyperevm"
+        );
+        setBalance(String(walletBalance));
+      } catch (balanceError) {
+        console.log("Lecture du solde impossible:", balanceError);
+        setBalance("0");
+        setError(
+          "Portefeuille connecté, mais le solde n'a pas pu être chargé."
+        );
+      }
     } else {
       setBalance("0");
     }
@@ -78,13 +112,12 @@ async function connectWallet() {
   } catch (err) {
     console.log("Wallet connection:", err);
     setError(
-      err.message || "Connexion impossible au portefeuille."
+      err?.message || "Connexion impossible au portefeuille."
     );
   } finally {
     setLoading(false);
   }
 }
-  
 async function initializeWallet() {
   try {
     setLoading(true);
