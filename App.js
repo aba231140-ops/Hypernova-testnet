@@ -153,6 +153,7 @@ async function initializeWallet() {
     });
 
     clientRef.current = client;
+    providerRef.current = client.getProvider();
     setReady(true);
 
     return client;
