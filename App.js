@@ -85,7 +85,7 @@ async function connectWallet() {
   }
 }
   
-  async function initializeWallet() {
+async function initializeWallet() {
   try {
     setLoading(true);
     setError("");
@@ -103,6 +103,13 @@ async function connectWallet() {
           "0x13882": "https://polygon-amoy.g.alchemy.com/v2/demo",
           "0x66eee": "https://sepolia-rollup.arbitrum.io/rpc"
         }
+      },
+      mobile: {
+        preferredOpenLink: (deeplink) => {
+          Linking.openURL(deeplink).catch((err) => {
+            console.log("Ouverture MetaMask impossible:", err);
+          });
+        }
       }
     });
 
@@ -110,15 +117,17 @@ async function connectWallet() {
     setReady(true);
 
     return client;
+
   } catch (err) {
     console.log("Wallet initialization:", err);
     setError("Initialisation du portefeuille impossible.");
     return null;
+
   } finally {
     setLoading(false);
   }
-  }
-
+}
+  
   function disconnectWallet() {
     setAddress("");
     setBalance("0");
