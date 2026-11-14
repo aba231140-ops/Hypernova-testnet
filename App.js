@@ -55,17 +55,8 @@ function Action({ title, onPress, secondary = false, disabled = false }) {
     <Text style={s.actionText}>{title}</Text>
   </TouchableOpacity>;
 }
-function Dashboard() {
-  const open = () => {};
-const disconnect = async () => {};
-const switchNetwork = async () => {};
-const address = null;
-const isConnected = false;
-const chainId = 998;
-const chain = {
-  name: "HyperEVM Testnet",
-  nativeCurrency: { symbol: "HYPE" }
-};
+const { open, disconnect, switchNetwork } = useAppKit();
+const { address, isConnected, chainId, chain } = useAccount();
   const [tab, setTab] = useState("Accueil");
   const [balance, setBalance] = useState("—");
   const [blocks, setBlocks] = useState([]);
