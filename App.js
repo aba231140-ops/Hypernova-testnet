@@ -2,8 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity,
   View, RefreshControl, Linking
-} from "react-native";
-import {
+} from "react-native"
 import { HYPERNOVA_NETWORKS } from "./src/AppKitConfig";
 import { getNativeBalance } from "./src/multiNetworkBalance";
 import PartnerPage from "./src/PartnerPage";
