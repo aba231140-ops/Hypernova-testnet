@@ -215,9 +215,16 @@ const { address, isConnected, chainId, chain } = useAccount();
     {renderTab()}
     <Text style={s.footer}>HYPERNOVA © 2026 · VERSION TESTNET UNIQUEMENT</Text>
   </ScrollView>;
-}export default function App() {
-  return <Dashboard />;
-    }
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <AppKitProvider instance={appKit}>
+        <Dashboard />
+        <AppKitModal />
+      </AppKitProvider>
+    </SafeAreaProvider>
+  );
+}
 
 const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#050816" },
