@@ -4,9 +4,7 @@ import {
   View, RefreshControl, Linking
 } from "react-native";
 import {
-  AppKit as AppKitModal, AppKitProvider, useAccount, useAppKit
-} from "@reown/appkit-react-native";
-import { appKit, HYPERNOVA_NETWORKS } from "./src/AppKitConfig";
+import { HYPERNOVA_NETWORKS } from "./src/AppKitConfig";
 import { getNativeBalance } from "./src/multiNetworkBalance";
 import PartnerPage from "./src/PartnerPage";
 
