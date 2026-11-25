@@ -8,8 +8,10 @@
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "platforms": [
-      "android"
-    ],
+  "ios",
+  "android",
+  "web"
+    ]
     "android": {
       "package": "com.hypernova.testnet"
     },
