@@ -1,31 +1,18 @@
-
 import { Buffer } from "buffer";
 
 global.Buffer = Buffer;
 
-let windowObj = {};
-
-if (global.window) {
-  windowObj = global.window;
-}
-
-if (!windowObj.location) {
-  windowObj.location = {
-    hostname: "hypernova.app",
-    href: "https://hypernova.app"
+// Sur le navigateur, on conserve le vrai objet window.
+// Sur Android, on crée uniquement un petit objet de compatibilité
+// si window n'existe pas.
+if (typeof window === "undefined") {
+  global.window = {
+    location: {
+      hostname: "hypernova.app",
+      href: "https://hypernova.app"
+    },
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => true
   };
 }
-
-if (!windowObj.addEventListener) {
-  windowObj.addEventListener = () => {};
-}
-
-if (!windowObj.removeEventListener) {
-  windowObj.removeEventListener = () => {};
-}
-
-if (!windowObj.dispatchEvent) {
-  windowObj.dispatchEvent = () => true;
-}
-
-global.window = windowObj;
