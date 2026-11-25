@@ -55,6 +55,7 @@ function Action({ title, onPress, secondary = false, disabled = false }) {
     <Text style={s.actionText}>{title}</Text>
   </TouchableOpacity>;
 }
+function Dashboard() {
 const { open, disconnect, switchNetwork } = useAppKit();
 const { address, isConnected, chainId, chain } = useAccount();
   const [tab, setTab] = useState("Accueil");
@@ -214,7 +215,9 @@ const { address, isConnected, chainId, chain } = useAccount();
     {message ? <Text style={s.warning}>{message}</Text> : null}
     {renderTab()}
     <Text style={s.footer}>HYPERNOVA © 2026 · VERSION TESTNET UNIQUEMENT</Text>
-  </ScrollView>;
+    </ScrollView>;
+}
+
 export default function App() {
   return (
     <SafeAreaProvider>
