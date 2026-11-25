@@ -163,6 +163,7 @@ if (!projectId) {
   onramp: false,
   socials: false
 },
+      showWallets: true,
 allWallets: "SHOW",
 enableInjected: true,
 enableEIP6963: true,
