@@ -150,7 +150,7 @@ if (!projectId) {
       adapters: [new EthersAdapter()],
       networks,
       projectId,
-      defaultNetwork: networks[0],
+      defaultNetwork: networks[1],
       metadata: {
         name: "HYPERNOVA",
         description: "Multichain EVM Decentralized Exchange",
