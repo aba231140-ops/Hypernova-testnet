@@ -154,7 +154,7 @@ if (!projectId) {
       metadata: {
         name: "HYPERNOVA",
         description: "Multichain EVM Decentralized Exchange",
-        url: "https://hypernovatestnet.vercel.app",
+        url: "https://hypernova-testnet.vercel.app",
         icons: []
       },
       features: {
