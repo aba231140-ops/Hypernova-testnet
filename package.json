@@ -7,10 +7,11 @@
     "start": "expo start"
   },
   "dependencies": {
-    "expo": "~54.0.0",
-    "expo-status-bar": "~3.0.0",
-    "react": "19.1.0",
-    "react-native": "0.81.4",
+  "expo": "~54.0.0",
+  "react": "19.1.0",
+  "react-native": "0.81.4",
+  "react-native-web": "^0.21.0"
+  }
     "@metamask/connect-evm": "2.1.1",
     "@reown/appkit-react-native": "2.0.6",
     "@reown/appkit-ethers-react-native": "2.0.6",
