@@ -316,6 +316,16 @@ const [syncingProfile, setSyncingProfile] = useState(false);
       setSyncingProfile(false);
     }
     }
+    useEffect(() => {
+    if (isConnected && address) {
+      syncWalletProfile(address);
+    } else {
+      setProfileData(null);
+      setProfileStatus(
+        "Connecte ton wallet pour créer ton profil."
+      );
+    }
+  }, [address, isConnected]);
   useEffect(() => {
     loadBalance();
   }, [address, isConnected, chainId]);
