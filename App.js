@@ -14,6 +14,7 @@ import { appKit, HYPERNOVA_NETWORKS } from "./src/AppKitConfig";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { getNativeBalance } from "./src/multiNetworkBalance";
 import PartnerPage from "./src/PartnerPage";
+import { supabase } from "./src/supabase";
 
 const RPCS = {
   998: "https://rpc.hyperliquid-testnet.xyz/evm",
