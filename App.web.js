@@ -129,8 +129,7 @@ function AppContent() {
   const address = account.address;
   const isConnected = account.isConnected;
 
-  const chainId = Number(network.chainId || 998);
-
+  const chainId = Number(network.chainId || 11155111);
   const activeNetwork =
     networks.find(n => n.id === chainId) || networks[0];
 
