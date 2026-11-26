@@ -22,30 +22,8 @@ import {
 
 const projectId = process.env.EXPO_PUBLIC_REOWN_PROJECT_ID;
 
+
 const networks = [
-  {
-    id: 998,
-    name: "HyperEVM Testnet",
-    chainNamespace: "eip155",
-    caipNetworkId: "eip155:998",
-    nativeCurrency: {
-      name: "HYPE",
-      symbol: "HYPE",
-      decimals: 18
-    },
-    rpcUrls: {
-      default: {
-        http: ["https://rpc.hyperliquid-testnet.xyz/evm"]
-      }
-    },
-    blockExplorers: {
-      default: {
-        name: "Purrsec",
-        url: "https://testnet.purrsec.com"
-      }
-    },
-    testnet: true
-  },
   {
     id: 11155111,
     name: "Ethereum Sepolia",
@@ -68,77 +46,9 @@ const networks = [
       }
     },
     testnet: true
-  },
-  {
-    id: 97,
-    name: "BNB Chain Testnet",
-    chainNamespace: "eip155",
-    caipNetworkId: "eip155:97",
-    nativeCurrency: {
-      name: "tBNB",
-      symbol: "tBNB",
-      decimals: 18
-    },
-    rpcUrls: {
-      default: {
-        http: ["https://bsc-testnet-dataseed.bnbchain.org"]
-      }
-    },
-    blockExplorers: {
-      default: {
-        name: "BscScan",
-        url: "https://testnet.bscscan.com"
-      }
-    },
-    testnet: true
-  },
-  {
-    id: 80002,
-    name: "Polygon Amoy",
-    chainNamespace: "eip155",
-    caipNetworkId: "eip155:80002",
-    nativeCurrency: {
-      name: "POL",
-      symbol: "POL",
-      decimals: 18
-    },
-    rpcUrls: {
-      default: {
-        http: ["https://polygon-amoy.g.alchemy.com/v2/demo"]
-      }
-    },
-    blockExplorers: {
-      default: {
-        name: "PolygonScan",
-        url: "https://amoy.polygonscan.com"
-      }
-    },
-    testnet: true
-  },
-  {
-    id: 421614,
-    name: "Arbitrum Sepolia",
-    chainNamespace: "eip155",
-    caipNetworkId: "eip155:421614",
-    nativeCurrency: {
-      name: "ETH",
-      symbol: "ETH",
-      decimals: 18
-    },
-    rpcUrls: {
-      default: {
-        http: ["https://sepolia-rollup.arbitrum.io/rpc"]
-      }
-    },
-    blockExplorers: {
-      default: {
-        name: "Arbiscan",
-        url: "https://sepolia.arbiscan.io"
-      }
-    },
-    testnet: true
   }
 ];
+
 
 let appKitInitError = "";
 
