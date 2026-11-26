@@ -31,5 +31,6 @@
     "react-native-get-random-values": "^2.0.0",
     "util": "^0.12.5",
     "querystring-es3": "^0.2.1"
+    "@supabase/supabase-js": "^2.0.0"
   }
 }
