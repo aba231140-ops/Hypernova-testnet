@@ -19,6 +19,7 @@ import {
   StyleSheet,
   ActivityIndicator
 } from "react-native";
+import { supabase } from "./src/supabase";
 
 const projectId = process.env.EXPO_PUBLIC_REOWN_PROJECT_ID;
 
