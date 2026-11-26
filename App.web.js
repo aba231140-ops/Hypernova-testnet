@@ -185,6 +185,11 @@ function AppContent() {
   const [message, setMessage] = useState("");
   const [supabaseStatus, setSupabaseStatus] = useState("Test non effectué");
 const [testingSupabase, setTestingSupabase] = useState(false);
+  const [profileData, setProfileData] = useState(null);
+const [profileStatus, setProfileStatus] = useState(
+  "Connecte ton wallet pour créer ton profil."
+);
+const [syncingProfile, setSyncingProfile] = useState(false);
 
   const address = account.address;
   const isConnected = account.isConnected;
