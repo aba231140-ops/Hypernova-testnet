@@ -81,6 +81,7 @@ const { address, isConnected, chainId, chain } = useAccount();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [partnerPage, setPartnerPage] = useState(false);
+  const [supabaseStatus, setSupabaseStatus] = useState("Test non effectué");
 
   const activeChain = Number(chainId || 998);
   const networkName = chain?.name || (HYPERNOVA_NETWORKS.find(n => n.id === activeChain)?.name || "HyperEVM Testnet");
