@@ -247,6 +247,75 @@ const [syncingProfile, setSyncingProfile] = useState(false);
     }
   }
 
+    async function syncWalletProfile(walletAddress) {
+    if (!walletAddress) return;
+
+    setSyncingProfile(true);
+    setProfileStatus("Enregistrement du profil...");
+
+    try {
+      const normalizedAddress = walletAddress.toLowerCase();
+
+      // Rechercher si ce wallet possède déjà un profil
+      const { data: walletLink, error: lookupError } = await supabase
+        .from("wallets")
+        .select("profile_id")
+        .eq("wallet_address", normalizedAddress)
+        .maybeSingle();
+
+      if (lookupError) throw lookupError;
+
+      let profileId = walletLink?.profile_id;
+
+      // Créer un nouveau profil si nécessaire
+      if (!profileId) {
+        const newProfileId = crypto.randomUUID();
+        const newWalletId = crypto.randomUUID();
+
+        const { data: newProfile, error: profileError } = await supabase
+          .from("profiles")
+          .insert({
+            id: newProfileId,
+            username: "nova_" + normalizedAddress.slice(2, 10),
+            display_name: "HYPERNOVA User"
+          })
+          .select("id")
+          .single();
+
+        if (profileError) throw profileError;
+
+        profileId = newProfile.id;
+
+        const { error: walletError } = await supabase
+          .from("wallets")
+          .insert({
+            id: newWalletId,
+            profile_id: profileId,
+            wallet_address: normalizedAddress
+          });
+
+        if (walletError) throw walletError;
+      }
+
+      // Récupérer le profil enregistré
+      const { data: profile, error: readError } = await supabase
+        .from("profiles")
+        .select("id, username, display_name")
+        .eq("id", profileId)
+        .single();
+
+      if (readError) throw readError;
+
+      setProfileData(profile);
+      setProfileStatus("Profil HYPERNOVA enregistré avec succès.");
+
+    } catch (error) {
+      console.error("Erreur profil :", error);
+      setProfileStatus("Erreur : " + error.message);
+    } finally {
+      setSyncingProfile(false);
+    }
+    }
   useEffect(() => {
     loadBalance();
   }, [address, isConnected, chainId]);
