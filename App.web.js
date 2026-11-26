@@ -117,7 +117,9 @@ function shortAddress(address) {
 
 function AppContent() {
   const { open } = useAppKit();
-  const account = useAppKitAccount();
+  const account = useAppKitAccount({
+  chainNamespace: "eip155"
+});
   const network = useAppKitNetwork();
   const { disconnect } = useDisconnect();
 
