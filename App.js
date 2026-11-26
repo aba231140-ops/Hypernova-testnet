@@ -31,6 +31,21 @@ const EXPLORERS = {
   421614: "https://sepolia.arbiscan.io"
 };
 const NAV = ["Accueil", "Marchés", "Explorer", "Faucet", "XP", "Publicités", "Profil"];
+async function testSupabaseConnection() {
+  try {
+    const { error } = await supabase
+      .from("profiles")
+      .select("id")
+      .limit(1);
+
+    if (error) throw error;
+
+    return "Connexion Supabase réussie.";
+  } catch (error) {
+    console.log("Erreur Supabase :", error.message);
+    return "Connexion Supabase à vérifier : " + error.message;
+  }
+}
 
 async function rpc(chainId, method, params = []) {
   const url = RPCS[Number(chainId)];
