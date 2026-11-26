@@ -130,6 +130,7 @@ themeMode: "dark"
   }
 }
 
+
 const rpcUrls = {
   998: "https://rpc.hyperliquid-testnet.xyz/evm",
   11155111: "https://rpc.sepolia.org",
@@ -137,6 +138,7 @@ const rpcUrls = {
   80002: "https://polygon-amoy.g.alchemy.com/v2/demo",
   421614: "https://sepolia-rollup.arbitrum.io/rpc"
 };
+
 
 const tabs = [
   "Accueil",
