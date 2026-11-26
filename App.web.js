@@ -24,31 +24,69 @@ import { supabase } from "./src/supabase";
 const projectId = process.env.EXPO_PUBLIC_REOWN_PROJECT_ID;
 
 
+
+const makeNetwork = (id, name, symbol, rpc, explorer) => ({
+  id,
+  name,
+  chainNamespace: "eip155",
+  caipNetworkId: `eip155:${id}`,
+  nativeCurrency: {
+    name: symbol,
+    symbol,
+    decimals: 18
+  },
+  rpcUrls: {
+    default: {
+      http: [rpc]
+    }
+  },
+  blockExplorers: {
+    default: {
+      name: "Explorer",
+      url: explorer
+    }
+  },
+  testnet: true
+});
+
 const networks = [
-  {
-    id: 11155111,
-    name: "Ethereum Sepolia",
-    chainNamespace: "eip155",
-    caipNetworkId: "eip155:11155111",
-    nativeCurrency: {
-      name: "Ether",
-      symbol: "ETH",
-      decimals: 18
-    },
-    rpcUrls: {
-      default: {
-        http: ["https://rpc.sepolia.org"]
-      }
-    },
-    blockExplorers: {
-      default: {
-        name: "Etherscan",
-        url: "https://sepolia.etherscan.io"
-      }
-    },
-    testnet: true
-  }
+  makeNetwork(
+    11155111,
+    "Ethereum Sepolia",
+    "ETH",
+    "https://rpc.sepolia.org",
+    "https://sepolia.etherscan.io"
+  ),
+  makeNetwork(
+    998,
+    "HyperEVM Testnet",
+    "HYPE",
+    "https://rpc.hyperliquid-testnet.xyz/evm",
+    "https://testnet.purrsec.com"
+  ),
+  makeNetwork(
+    97,
+    "BNB Chain Testnet",
+    "tBNB",
+    "https://bsc-testnet-dataseed.bnbchain.org",
+    "https://testnet.bscscan.com"
+  ),
+  makeNetwork(
+    80002,
+    "Polygon Amoy",
+    "POL",
+    "https://polygon-amoy.g.alchemy.com/v2/demo",
+    "https://amoy.polygonscan.com"
+  ),
+  makeNetwork(
+    421614,
+    "Arbitrum Sepolia",
+    "ETH",
+    "https://sepolia-rollup.arbitrum.io/rpc",
+    "https://sepolia.arbiscan.io"
+  )
 ];
+
 
 
 let appKitInitError = "";
