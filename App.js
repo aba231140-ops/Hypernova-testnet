@@ -207,6 +207,15 @@ const { address, isConnected, chainId, chain } = useAccount();
     <Text style={s.muted}>HYPERNOVA ne demande jamais de phrase secrète ni de clé privée.</Text>
     {isConnected ? <Action title="DÉCONNECTER LE WALLET" onPress={disconnectWallet} secondary /> :
       <Action title="CONNECTER LE WALLET" onPress={() => open()} />}
+      <Text style={s.muted}>Supabase : {supabaseStatus}</Text>
+<Action
+  title="TESTER SUPABASE"
+  onPress={async () => {
+    setSupabaseStatus("Connexion en cours...");
+    const result = await testSupabaseConnection();
+    setSupabaseStatus(result);
+  }}
+/>
   </Panel>;
 
   const renderTab = () => {
