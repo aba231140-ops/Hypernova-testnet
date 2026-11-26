@@ -445,6 +445,27 @@ const [testingSupabase, setTestingSupabase] = useState(false);
         {isConnected
           ? action("DÉCONNECTER", disconnectWallet, true)
           : action("CONNECTER MON WALLET", () => open())}
+<Text style={s.muted}>
+  Supabase : {supabaseStatus}
+</Text>
+
+<TouchableOpacity
+  style={s.button}
+  disabled={testingSupabase}
+  onPress={async () => {
+    setTestingSupabase(true);
+    setSupabaseStatus("Connexion en cours...");
+
+    const result = await testSupabaseConnection();
+
+    setSupabaseStatus(result);
+    setTestingSupabase(false);
+  }}
+>
+  <Text style={s.buttonText}>
+    {testingSupabase ? "TEST EN COURS..." : "TESTER SUPABASE"}
+  </Text>
+</TouchableOpacity>
       </>
     );
   }
