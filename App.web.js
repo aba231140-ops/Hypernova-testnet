@@ -116,6 +116,21 @@ function shortAddress(address) {
     : "";
 }
 
+async function testSupabaseConnection() {
+  try {
+    const { error } = await supabase
+      .from("profiles")
+      .select("id")
+      .limit(1);
+
+    if (error) throw error;
+
+    return "Connexion Supabase réussie.";
+  } catch (error) {
+    console.error("Erreur Supabase :", error);
+    return "Échec du test : " + error.message;
+  }
+}
 function AppContent() {
   const { open } = useAppKit();
   const account = useAppKitAccount({
