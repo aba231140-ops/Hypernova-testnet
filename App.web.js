@@ -1,4 +1,4 @@
-
+i
 import React, { useEffect, useState } from "react";
 
 import {
@@ -565,6 +565,31 @@ const [syncingProfile, setSyncingProfile] = useState(false);
           HYPERNOVA ne demande jamais de phrase secrète
           ni de clé privée.
         </Text>
+        <Text style={s.panelTitle}>
+          MON PROFIL HYPERNOVA
+        </Text>
+
+        <Text style={s.muted}>
+          Nom : {profileData?.display_name || "Non enregistré"}
+        </Text>
+
+        <Text style={s.muted}>
+          Identifiant : {profileData?.username || "—"}
+        </Text>
+
+        <Text style={s.muted}>
+          Statut : {profileStatus}
+        </Text>
+
+        {isConnected ? (
+          action(
+            syncingProfile
+              ? "ENREGISTREMENT..."
+              : "SYNCHRONISER MON PROFIL",
+            () => syncWalletProfile(address),
+            true
+          )
+        ) : null}
 
         {isConnected
           ? action("DÉCONNECTER", disconnectWallet, true)
