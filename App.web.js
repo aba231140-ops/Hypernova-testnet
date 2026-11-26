@@ -143,6 +143,8 @@ function AppContent() {
   const [balance, setBalance] = useState("—");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [supabaseStatus, setSupabaseStatus] = useState("Test non effectué");
+const [testingSupabase, setTestingSupabase] = useState(false);
 
   const address = account.address;
   const isConnected = account.isConnected;
