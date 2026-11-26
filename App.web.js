@@ -130,6 +130,7 @@ function AppContent() {
 
   const address = account.address;
   const isConnected = account.isConnected;
+  const walletStatus = account.status || "inconnu";
 
   const chainId = Number(network.chainId || 11155111);
   const activeNetwork =
@@ -436,6 +437,13 @@ function AppContent() {
       contentContainerStyle={s.content}
     >
       <Text style={s.logo}>HYPERNOVA</Text>
+        <Text style={s.warning}>
+  Diagnostic : {walletStatus}
+</Text>
+
+<Text style={s.warning}>
+  Adresse : {account.address || "Aucune adresse détectée"}
+</Text>
 
       <Text style={s.subtitle}>
         MULTICHAIN · NON-CUSTODIAL · TESTNET
