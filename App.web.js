@@ -636,14 +636,15 @@ async function syncWalletProfile(walletAddress) {
         </Text>
 
         {isConnected ? (
-          action(
-            syncingProfile
-              ? "ENREGISTREMENT..."
-              : "SYNCHRONISER MON PROFIL",
-            () => syncWalletProfile(address),
-            true
-          )
-        ) : null}
+  action(
+    syncingProfile
+      ? "ENREGISTREMENT..."
+      : "SYNCHRONISER MON PROFIL",
+    () => syncWalletProfile(address),
+    true,
+    syncingProfile
+  )
+) : null}
 
         {isConnected
           ? action("DÉCONNECTER", disconnectWallet, true)
