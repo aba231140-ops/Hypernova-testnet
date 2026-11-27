@@ -897,5 +897,65 @@ const s = StyleSheet.create({
     marginVertical: 8
   },
 
-  address: {
+    address: {
     color: "#FFFFFF",
+    fontSize: 12,
+    marginVertical: 7
+  },
+
+  muted: {
+    color: "#9AAAC5",
+    fontSize: 12,
+    lineHeight: 19,
+    marginTop: 4
+  },
+
+  white: {
+    color: "#FFFFFF",
+    fontWeight: "800",
+    fontSize: 13
+  },
+
+  success: {
+    color: "#45D6A0",
+    fontWeight: "800"
+  },
+
+  warning: {
+    color: "#FFCA76",
+    fontSize: 12,
+    lineHeight: 19,
+    marginVertical: 8
+  },
+
+  button: {
+    backgroundColor: "#087DCE",
+    padding: 13,
+    borderRadius: 10,
+    marginTop: 12
+  },
+
+  secondary: {
+    backgroundColor: "#34445E"
+  },
+
+  buttonText: {
+    color: "#FFFFFF",
+    textAlign: "center",
+    fontWeight: "900",
+    fontSize: 12
+  },
+
+  networkRow: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#24334D"
+  },
+
+  footer: {
+    color: "#72819B",
+    textAlign: "center",
+    fontSize: 9,
+    marginTop: 15
+  }
+});
