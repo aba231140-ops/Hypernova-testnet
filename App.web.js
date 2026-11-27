@@ -269,9 +269,28 @@ async function syncWalletProfile(walletAddress) {
   setProfileStatus("Préparation de la signature...");
 
   try {
-    const accounts = await walletProvider.request({
-  method: "eth_accounts"
-});
+    let accounts;
+
+try {
+  if (!walletProvider) {
+    throw new Error("Fournisseur EVM absent.");
+  }
+
+  if (typeof walletProvider.request !== "function") {
+    throw new Error("La méthode request est absente du fournisseur.");
+  }
+
+  setProfileStatus("Fournisseur trouvé. Lecture du compte...");
+  accounts = await walletProvider.request({
+    method: "eth_accounts"
+  });
+
+} catch (error) {
+  throw new Error(
+    "Diagnostic fournisseur : " +
+    (error.message || String(error))
+  );
+}
 
 console.log("HYPERNOVA comptes EVM :", accounts);
 
