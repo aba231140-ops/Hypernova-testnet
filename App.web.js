@@ -179,6 +179,7 @@ function AppContent() {
   chainNamespace: "eip155"
 });
   const network = useAppKitNetwork();
+  const { walletProvider } = useAppKitProvider("eip155");
   const { disconnect } = useDisconnect();
 
   const [tab, setTab] = useState("Accueil");
