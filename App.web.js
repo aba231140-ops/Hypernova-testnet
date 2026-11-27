@@ -291,8 +291,8 @@ async function syncWalletProfile(walletAddress) {
       b => b.toString(16).padStart(2, "0")
     ).join("");
 
-    const domain = window.location.host;
-    const uri = window.location.origin + "/";
+    const domain = "hypernova-testnet.vercel.app";
+const uri = "https://hypernova-testnet.vercel.app/";
     const issuedAt = new Date().toISOString();
 
     const message =
