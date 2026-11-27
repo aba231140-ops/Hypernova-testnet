@@ -403,6 +403,11 @@ const uri = "https://hypernova-testnet.vercel.app/";
       return;
     }
 
+    const { data: total, error: totalError } =
+      await supabase.rpc("get_my_xp_total");
+
+    if (totalError) throw totalError;
+
     const { data, error } = await supabase
       .from("xp_transactions")
       .select("id, activity_key, points, description, created_at")
@@ -412,16 +417,8 @@ const uri = "https://hypernova-testnet.vercel.app/";
 
     if (error) throw error;
 
-    const rows = data || [];
-
-    setXpHistory(rows);
-
-    setXpTotal(
-      rows.reduce(
-        (total, item) => total + Number(item.points || 0),
-        0
-      )
-    );
+    setXpTotal(Number(total || 0));
+    setXpHistory(data || []);
 
   } catch (error) {
     console.error("Erreur XP :", error);
