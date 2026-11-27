@@ -263,8 +263,20 @@ async function syncWalletProfile(walletAddress) {
   setProfileStatus("Préparation de la signature...");
 
   try {
-    const provider = new BrowserProvider(walletProvider);
-    const signer = await provider.getSigner();
+    const accounts = await walletProvider.request({
+  method: "eth_accounts"
+});
+
+console.log("HYPERNOVA comptes EVM :", accounts);
+
+if (!Array.isArray(accounts) || accounts.length === 0) {
+  throw new Error(
+    "Reown ne transmet aucun compte Ethereum au fournisseur."
+  );
+}
+
+const provider = new BrowserProvider(walletProvider);
+const signer = await provider.getSigner(accounts[0]);
     const signerAddress = getAddress(await signer.getAddress());
 
     if (signerAddress.toLowerCase() !== walletAddress.toLowerCase()) {
