@@ -341,7 +341,7 @@ const uri = "https://hypernova-testnet.vercel.app/";
       .from("wallets")
       .select("id")
       .eq("user_id", userId)
-      .eq("wallet_address", normalizedAddress)
+      .eq("address", normalizedAddress)
       .maybeSingle();
 
     if (lookupError) throw lookupError;
