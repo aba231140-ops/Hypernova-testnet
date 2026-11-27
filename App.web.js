@@ -250,75 +250,121 @@ const [syncingProfile, setSyncingProfile] = useState(false);
     }
   }
 
-    async function syncWalletProfile(walletAddress) {
-    if (!walletAddress) return;
+    
+async function syncWalletProfile(walletAddress) {
+  if (!walletAddress) return;
 
-    setSyncingProfile(true);
-    setProfileStatus("Enregistrement du profil...");
+  if (!walletProvider) {
+    setProfileStatus("Fournisseur Reown indisponible. Reconnecte ton wallet.");
+    return;
+  }
 
-    try {
-      const normalizedAddress = walletAddress.toLowerCase();
+  setSyncingProfile(true);
+  setProfileStatus("Préparation de la signature...");
 
-      // Rechercher si ce wallet possède déjà un profil
-      const { data: walletLink, error: lookupError } = await supabase
+  try {
+    const provider = new BrowserProvider(walletProvider);
+    const signer = await provider.getSigner();
+    const signerAddress = getAddress(await signer.getAddress());
+
+    if (signerAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+      throw new Error("Le wallet signataire ne correspond pas au wallet connecté.");
+    }
+
+    const bytes = new Uint8Array(16);
+    window.crypto.getRandomValues(bytes);
+    const nonce = Array.from(
+      bytes,
+      b => b.toString(16).padStart(2, "0")
+    ).join("");
+
+    const domain = window.location.host;
+    const uri = window.location.origin + "/";
+    const issuedAt = new Date().toISOString();
+
+    const message =
+      domain + " wants you to sign in with your Ethereum account:\n" +
+      signerAddress + "\n\n" +
+      "Authentification HYPERNOVA. Cette signature ne déclenche aucune transaction.\n\n" +
+      "URI: " + uri + "\n" +
+      "Version: 1\n" +
+      "Chain ID: " + chainId + "\n" +
+      "Nonce: " + nonce + "\n" +
+      "Issued At: " + issuedAt;
+
+    setProfileStatus("Confirme la signature dans ton wallet...");
+
+    const signature = await signer.signMessage(message);
+
+    const { data: authData, error: authError } =
+      await supabase.auth.signInWithWeb3({
+        chain: "ethereum",
+        message,
+        signature
+      });
+
+    if (authError) throw authError;
+
+    const userId = authData?.user?.id;
+    if (!userId) {
+      throw new Error("Utilisateur Supabase non authentifié.");
+    }
+
+    const normalizedAddress = signerAddress.toLowerCase();
+
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .insert({
+        id: userId,
+        username: "nova_" + normalizedAddress.slice(2, 10),
+        display_name: "HYPERNOVA User"
+      });
+
+    if (profileError && profileError.code !== "23505") {
+      throw profileError;
+    }
+
+    const { data: walletLink, error: lookupError } = await supabase
+      .from("wallets")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("wallet_address", normalizedAddress)
+      .maybeSingle();
+
+    if (lookupError) throw lookupError;
+
+    if (!walletLink) {
+      const { error: walletError } = await supabase
         .from("wallets")
-        .select("profile_id")
-        .eq("wallet_address", normalizedAddress)
-        .maybeSingle();
+        .insert({
+          id: crypto.randomUUID(),
+          user_id: userId,
+          wallet_address: normalizedAddress,
+          verified: false
+        });
 
-      if (lookupError) throw lookupError;
-
-      let profileId = walletLink?.profile_id;
-
-      // Créer un nouveau profil si nécessaire
-      if (!profileId) {
-        const newProfileId = crypto.randomUUID();
-        const newWalletId = crypto.randomUUID();
-
-        const { data: newProfile, error: profileError } = await supabase
-          .from("profiles")
-          .insert({
-            id: newProfileId,
-            username: "nova_" + normalizedAddress.slice(2, 10),
-            display_name: "HYPERNOVA User"
-          })
-          .select("id")
-          .single();
-
-        if (profileError) throw profileError;
-
-        profileId = newProfile.id;
-
-        const { error: walletError } = await supabase
-          .from("wallets")
-          .insert({
-            id: newWalletId,
-            profile_id: profileId,
-            wallet_address: normalizedAddress
-          });
-
-        if (walletError) throw walletError;
-      }
-
-      // Récupérer le profil enregistré
-      const { data: profile, error: readError } = await supabase
-        .from("profiles")
-        .select("id, username, display_name")
-        .eq("id", profileId)
-        .single();
-
-      if (readError) throw readError;
-
-      setProfileData(profile);
-      setProfileStatus("Profil HYPERNOVA enregistré avec succès.");
-
-    } catch (error) {
-      console.error("Erreur profil :", error);
-      setProfileStatus("Erreur : " + error.message);
-    } finally {
-      setSyncingProfile(false);
+      if (walletError) throw walletError;
     }
-    }
+
+    const { data: profile, error: readError } = await supabase
+      .from("profiles")
+      .select("id, username, display_name")
+      .eq("id", userId)
+      .single();
+
+    if (readError) throw readError;
+
+    setProfileData(profile);
+    setProfileStatus("Profil HYPERNOVA enregistré avec succès.");
+
+  } catch (error) {
+    console.error("Erreur profil HYPERNOVA :", error);
+    setProfileStatus("Erreur : " + (error.message || String(error)));
+  } finally {
+    setSyncingProfile(false);
+  }
+}
+  
     useEffect(() => {
     if (isConnected && address) {
       syncWalletProfile(address);
