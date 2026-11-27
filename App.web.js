@@ -252,7 +252,7 @@ const [syncingProfile, setSyncingProfile] = useState(false);
 
     
 async function syncWalletProfile(walletAddress) {
-  if (!walletAddress) return;
+  if (!walletAddress || syncingProfile) return;
 
   if (!walletProvider) {
     setProfileStatus("Fournisseur Reown indisponible. Reconnecte ton wallet.");
