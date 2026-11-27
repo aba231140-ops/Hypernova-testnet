@@ -7,6 +7,7 @@ import {
   useAppKitAccount,
   useAppKitNetwork,
   useDisconnect
+  useAppKitProvider,
 } from "@reown/appkit/react";
 
 import { EthersAdapter } from "@reown/appkit-adapter-ethers";
