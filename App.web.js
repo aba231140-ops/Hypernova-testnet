@@ -413,7 +413,7 @@ async function syncWalletProfile(walletAddress) {
     );
   }
 
-  function action(label, callback, secondary = false) {
+  function action(label, callback, secondary = false, disabled = false) {
     return (
       <TouchableOpacity
         onPress={callback}
