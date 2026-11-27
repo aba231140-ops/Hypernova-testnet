@@ -199,6 +199,10 @@ const [profileStatus, setProfileStatus] = useState(
   "Connecte ton wallet pour créer ton profil."
 );
 const [syncingProfile, setSyncingProfile] = useState(false);
+  const [xpTotal, setXpTotal] = useState(0);
+const [xpHistory, setXpHistory] = useState([]);
+const [xpLoading, setXpLoading] = useState(false);
+const [xpError, setXpError] = useState("");
 
   const address = account.address;
   const isConnected = account.isConnected;
