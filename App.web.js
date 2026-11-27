@@ -449,6 +449,11 @@ const uri = "https://hypernova-testnet.vercel.app/";
   useEffect(() => {
     loadBalance();
   }, [address, isConnected, chainId]);
+  useEffect(() => {
+  if (tab === "XP") {
+    loadXP();
+  }
+}, [tab]);
 
   async function changeNetwork(id) {
     try {
