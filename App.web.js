@@ -99,7 +99,7 @@ if (!projectId) {
   try {
     createAppKit({
       adapters: [new EthersAdapter()],
-      networks,
+      networks: [networks[0]],
       projectId,
       defaultNetwork: networks[0],
       metadata: {
