@@ -6,7 +6,7 @@ import {
   useAppKit,
   useAppKitAccount,
   useAppKitNetwork,
-  useDisconnect
+  useDisconnect,
   useAppKitProvider,
 } from "@reown/appkit/react";
 
@@ -366,15 +366,18 @@ async function syncWalletProfile(walletAddress) {
 }
   
     useEffect(() => {
-    if (isConnected && address) {
-      syncWalletProfile(address);
-    } else {
-      setProfileData(null);
-      setProfileStatus(
-        "Connecte ton wallet pour créer ton profil."
-      );
-    }
-  }, [address, isConnected]);
+  if (isConnected && address) {
+    setProfileData(null);
+    setProfileStatus(
+      "Wallet connecté. Appuie sur le bouton pour signer et créer ton profil."
+    );
+  } else {
+    setProfileData(null);
+    setProfileStatus(
+      "Connecte ton wallet pour créer ton profil."
+    );
+  }
+}, [address, isConnected]);
   useEffect(() => {
     loadBalance();
   }, [address, isConnected, chainId]);
