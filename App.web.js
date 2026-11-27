@@ -21,6 +21,7 @@ import {
   ActivityIndicator
 } from "react-native";
 import { supabase } from "./src/supabase";
+import { BrowserProvider, getAddress } from "ethers";
 
 const projectId = process.env.EXPO_PUBLIC_REOWN_PROJECT_ID;
 
