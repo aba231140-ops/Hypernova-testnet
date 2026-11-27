@@ -416,12 +416,14 @@ async function syncWalletProfile(walletAddress) {
   function action(label, callback, secondary = false, disabled = false) {
     return (
       <TouchableOpacity
-        onPress={callback}
-        style={[
-          s.button,
-          secondary && s.secondary
-        ]}
-      >
+  onPress={callback}
+  disabled={disabled}
+  style={[
+    s.button,
+    secondary && s.secondary,
+    disabled && { opacity: 0.5 }
+  ]}
+>
         <Text style={s.buttonText}>{label}</Text>
       </TouchableOpacity>
     );
