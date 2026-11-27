@@ -175,11 +175,17 @@ async function testSupabaseConnection() {
 }
 function AppContent() {
   const { open } = useAppKit();
+
   const account = useAppKitAccount({
-  chainNamespace: "eip155"
-});
+    chainNamespace: "eip155"
+  });
+
   const network = useAppKitNetwork();
-  
+
+  const { walletProvider } = useAppKitProvider("eip155");
+
+  console.log("HYPERNOVA walletProvider :", walletProvider);
+
   const { disconnect } = useDisconnect();
 
   const [tab, setTab] = useState("Accueil");
