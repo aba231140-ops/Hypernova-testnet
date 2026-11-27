@@ -350,11 +350,12 @@ const uri = "https://hypernova-testnet.vercel.app/";
       const { error: walletError } = await supabase
         .from("wallets")
         .insert({
-          id: crypto.randomUUID(),
-          user_id: userId,
-          wallet_address: normalizedAddress,
-          verified: false
-        });
+  id: crypto.randomUUID(),
+  user_id: userId,
+  address: normalizedAddress,
+  chain_id: chainId,
+  verified: false
+});
 
       if (walletError) throw walletError;
     }
