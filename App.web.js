@@ -382,6 +382,56 @@ const uri = "https://hypernova-testnet.vercel.app/";
     setSyncingProfile(false);
   }
 }
+  async function loadXP() {
+  setXpLoading(true);
+  setXpError("");
+
+  try {
+    const { data: userData, error: userError } =
+      await supabase.auth.getUser();
+
+    if (userError) throw userError;
+
+    const userId = userData?.user?.id;
+
+    if (!userId) {
+      setXpTotal(0);
+      setXpHistory([]);
+      setXpError(
+        "Connecte ton wallet et synchronise ton profil pour consulter tes XP."
+      );
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("xp_transactions")
+      .select("id, activity_key, points, description, created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (error) throw error;
+
+    const rows = data || [];
+
+    setXpHistory(rows);
+
+    setXpTotal(
+      rows.reduce(
+        (total, item) => total + Number(item.points || 0),
+        0
+      )
+    );
+
+  } catch (error) {
+    console.error("Erreur XP :", error);
+    setXpError(
+      error.message || "Impossible de charger les XP."
+    );
+  } finally {
+    setXpLoading(false);
+  }
+  }
   
     useEffect(() => {
   if (isConnected && address) {
