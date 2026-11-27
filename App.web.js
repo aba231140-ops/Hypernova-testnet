@@ -898,4 +898,4 @@ const s = StyleSheet.create({
   },
 
   address: {
-    color: "#F
+    color: "#FFFFFF",
