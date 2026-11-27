@@ -642,18 +642,55 @@ const uri = "https://hypernova-testnet.vercel.app/";
     }
 
     if (tab === "XP") {
-      return panel(
-        "HYPERNOVA XP",
-        <>
-          <Text style={s.big}>XP —</Text>
+  return panel(
+    "HYPERNOVA XP",
+    <>
+      <Text style={s.muted}>SOLDE TOTAL</Text>
+
+      <Text style={s.big}>
+        {xpLoading ? "Chargement..." : xpTotal + " XP"}
+      </Text>
+
+      {action(
+        "ACTUALISER MES XP",
+        loadXP,
+        true,
+        xpLoading
+      )}
+
+      {xpError ? (
+        <Text style={s.warning}>{xpError}</Text>
+      ) : null}
+
+      <Text style={s.panelTitle}>
+        HISTORIQUE DES ACTIVITÉS
+      </Text>
+
+      {xpHistory.length === 0 && !xpLoading ? (
+        <Text style={s.muted}>
+          Aucun XP attribué pour le moment.
+          Les points apparaîtront ici après validation
+          sécurisée des activités.
+        </Text>
+      ) : null}
+
+      {xpHistory.map(item => (
+        <View key={item.id} style={s.networkRow}>
+          <Text style={s.white}>
+            +{item.points} XP ·{" "}
+            {item.description || item.activity_key}
+          </Text>
 
           <Text style={s.muted}>
-            Points, activités éligibles et historique seront
-            ajoutés avec un système de validation anti-fraude.
+            {item.created_at
+              ? new Date(item.created_at).toLocaleString()
+              : "Date indisponible"}
           </Text>
-        </>
-      );
-    }
+        </View>
+      ))}
+    </>
+  );
+}
 
     if (tab === "Publicités") {
       return panel(
