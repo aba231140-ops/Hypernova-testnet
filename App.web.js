@@ -466,37 +466,40 @@ if (providerAddress.toLowerCase() !== signerAddress.toLowerCase()) {
 
       setProfileStatus(
         "Profil enregistré. " +
-        (xpAward?.message || "Vérification des XP terminée.")
+        
+      (xpAward?.message || "Vérification des XP terminée.")
       );
     }
 
   } catch (error) {
-  const params = error?.info?.payload?.params;
+    const params = error?.info?.payload?.params;
 
-  const diagnostic = Array.isArray(params)
-    ? params.map((p, i) => {
-        const value = String(p);
-        const isAddress = /^0x[a-fA-F0-9]{40}$/.test(value);
+    const diagnostic = Array.isArray(params)
+      ? params.map((p, i) => {
+          const value = String(p);
+          const isAddress = /^0x[a-fA-F0-9]{40}$/.test(value);
 
-        return "Paramètre " + i +
-          " : longueur " + value.length +
-          ", adresse valide : " + isAddress;
-      }).join(" | ")
-    : "Paramètres non accessibles";
+          return "Paramètre " + i +
+            " : longueur " + value.length +
+            ", adresse valide : " + isAddress;
+        }).join(" | ")
+      : "Paramètres non accessibles";
 
-  console.error("Diagnostic signature :", error);
+    console.error("Diagnostic signature :", error);
 
-  setProfileStatus(
-    "Erreur signature : " +
-    (error.message || String(error)) +
-    " | " + diagnostic
-  );
+    setProfileStatus(
+      "Erreur signature : " +
+      (error.message || String(error)) +
+      " | " + diagnostic
+    );
 
-} finally {
-  setSyncingProfile(false);
+  } finally {
+    setSyncingProfile(false);
   }
+}
+
+async function loadXP() {
   
-  async function loadXP() {
   setXpLoading(true);
   setXpError("");
 
