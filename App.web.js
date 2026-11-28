@@ -320,7 +320,7 @@ const uri = "https://hypernova-testnet.vercel.app/";
 
 const signature = await walletProvider.request({
   method: "personal_sign",
-  params: [signerAddress, messageHex]
+  params: [messageHex, signerAddress]
 });
 
     const { data: authData, error: authError } =
