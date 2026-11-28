@@ -25,7 +25,5 @@ jobs:
       - name: Deploy clever-action
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: |
-          supabase functions deploy clever-action \
-            --project-ref knoenrgxdegsqmhlxobx
-            
+        run: supabase functions deploy clever-action --project-ref knoenrgxdegsqmhlxobx --yes
+        
