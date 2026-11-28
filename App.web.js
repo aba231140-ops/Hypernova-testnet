@@ -356,7 +356,18 @@ if (providerAddress.toLowerCase() !== signerAddress.toLowerCase()) {
       "Confirme le message dans ton wallet. Aucune transaction ne sera envoyée."
     );
 
-    const signature = await signer.signMessage(message);
+    
+const messageHex =
+  "0x" +
+  Array.from(new TextEncoder().encode(message))
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+
+const signature = await walletProvider.request({
+  method: "personal_sign",
+  params: [messageHex, signerAddress]
+});
+    
 
     if (!signature) {
       throw new Error("Aucune signature reçue du wallet.");
