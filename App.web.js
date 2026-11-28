@@ -281,6 +281,9 @@ async function syncWalletProfile(walletAddress) {
     const signerAddress = getAddress(
       await signer.getAddress()
     );
+    console.log("Adresse utilisée pour signer :", signerAddress);
+console.log("Adresse du wallet connecté :", walletAddress);
+console.log("Fournisseur disponible :", !!walletProvider);
 
     console.log("HYPERNOVA adresse signataire :", signerAddress);
 
