@@ -307,12 +307,6 @@ if (providerAddress.toLowerCase() !== signerAddress.toLowerCase()) {
   throw new Error("Les adresses du fournisseur et d'Ethers sont différentes.");
 }
 
-setProfileStatus(
-  "Diagnostic réussi : les adresses du fournisseur et d'Ethers correspondent."
-);
-
-throw new Error("Fin du diagnostic temporaire.");
-
     const connectedAddress = getAddress(walletAddress);
 
     if (
