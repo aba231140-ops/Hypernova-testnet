@@ -381,7 +381,12 @@ const uri = "https://hypernova-testnet.vercel.app/";
 
 if (xpAwardError) {
   console.error("Erreur attribution XP :", xpAwardError);
-} else {
+
+  setProfileStatus(
+    "Erreur attribution XP : " +
+    (xpAwardError.message || String(xpAwardError))
+  );
+}else {
   console.log("Résultat récompense XP :", xpAward);
   setProfileStatus(
     "Profil enregistré. " + (xpAward?.message || "Vérification des XP terminée.")
