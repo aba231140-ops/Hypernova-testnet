@@ -311,7 +311,17 @@ const uri = "https://hypernova-testnet.vercel.app/";
 
     setProfileStatus("Confirme la signature dans ton wallet...");
 
-    const signature = await signer.signMessage(message);
+    const messageHex =
+  "0x" +
+  Array.from(
+    new TextEncoder().encode(message),
+    b => b.toString(16).padStart(2, "0")
+  ).join("");
+
+const signature = await walletProvider.request({
+  method: "personal_sign",
+  params: [signerAddress, messageHex]
+});
 
     const { data: authData, error: authError } =
       await supabase.auth.signInWithWeb3({
