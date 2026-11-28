@@ -261,53 +261,72 @@ const [xpError, setXpError] = useState("");
   }
 
     
+
 async function syncWalletProfile(walletAddress) {
   if (!walletAddress || syncingProfile) return;
 
   if (!walletProvider) {
-    setProfileStatus("Fournisseur Reown indisponible. Reconnecte ton wallet.");
+    setProfileStatus(
+      "ÉCHEC — Fournisseur Reown indisponible."
+    );
     return;
   }
 
   setSyncingProfile(true);
-  setProfileStatus("Préparation de la signature...");
+
+  let currentStep = "Initialisation";
 
   try {
-        setProfileStatus("Connexion au fournisseur EVM...");
+    // 1. Vérification du fournisseur
+    currentStep = "Connexion au fournisseur EVM";
+    setProfileStatus(currentStep + "...");
 
     const provider = new BrowserProvider(walletProvider);
     const signer = await provider.getSigner();
 
+    // 2. Vérification des adresses
+    currentStep = "Vérification des adresses";
+
     const signerAddress = getAddress(
       await signer.getAddress()
     );
-    console.log("Adresse utilisée pour signer :", signerAddress);
-console.log("Adresse du wallet connecté :", walletAddress);
-console.log("Fournisseur disponible :", !!walletProvider);
 
-    console.log("HYPERNOVA adresse signataire :", signerAddress);
-    console.log("Adresse utilisée pour signer :", signerAddress);
-console.log("Adresse du wallet connecté :", walletAddress);
-console.log("Fournisseur disponible :", !!walletProvider);
+    const connectedAddress = getAddress(walletAddress);
 
-    if (signerAddress.toLowerCase() !== walletAddress.toLowerCase()) {
-      throw new Error("Le wallet signataire ne correspond pas au wallet connecté.");
+    if (
+      signerAddress.toLowerCase() !==
+      connectedAddress.toLowerCase()
+    ) {
+      throw new Error(
+        "Le signataire ne correspond pas au wallet connecté."
+      );
     }
+
+    console.log("Adresse signataire :", signerAddress);
+    console.log("Adresse connectée :", connectedAddress);
+    console.log("Fournisseur disponible :", !!walletProvider);
+
+    // 3. Création du message
+    currentStep = "Préparation du message de signature";
+    setProfileStatus(currentStep + "...");
 
     const bytes = new Uint8Array(16);
     window.crypto.getRandomValues(bytes);
+
     const nonce = Array.from(
       bytes,
       b => b.toString(16).padStart(2, "0")
     ).join("");
 
     const domain = "hypernova-testnet.vercel.app";
-const uri = "https://hypernova-testnet.vercel.app/";
+    const uri = "https://hypernova-testnet.vercel.app/";
     const issuedAt = new Date().toISOString();
 
     const message =
-      domain + " wants you to sign in with your Ethereum account:\n" +
-      signerAddress + "\n\n" +
+      domain +
+      " wants you to sign in with your Ethereum account:\n" +
+      signerAddress +
+      "\n\n" +
       "Authentification HYPERNOVA. Cette signature ne déclenche aucune transaction.\n\n" +
       "URI: " + uri + "\n" +
       "Version: 1\n" +
@@ -315,19 +334,21 @@ const uri = "https://hypernova-testnet.vercel.app/";
       "Nonce: " + nonce + "\n" +
       "Issued At: " + issuedAt;
 
-    setProfileStatus("Confirme la signature dans ton wallet...");
+    // 4. Signature du wallet
+    currentStep = "Signature MetaMask";
+    setProfileStatus(
+      "Confirme le message dans ton wallet. Aucune transaction ne sera envoyée."
+    );
 
-    const messageHex =
-  "0x" +
-  Array.from(
-    new TextEncoder().encode(message),
-    b => b.toString(16).padStart(2, "0")
-  ).join("");
+    const signature = await signer.signMessage(message);
 
-const signature = await walletProvider.request({
-  method: "personal_sign",
-  params: [messageHex, signerAddress]
-});
+    if (!signature) {
+      throw new Error("Aucune signature reçue du wallet.");
+    }
+
+    // 5. Authentification Supabase
+    currentStep = "Authentification Supabase";
+    setProfileStatus(currentStep + "...");
 
     const { data: authData, error: authError } =
       await supabase.auth.signInWithWeb3({
@@ -339,9 +360,16 @@ const signature = await walletProvider.request({
     if (authError) throw authError;
 
     const userId = authData?.user?.id;
+
     if (!userId) {
-      throw new Error("Utilisateur Supabase non authentifié.");
+      throw new Error(
+        "Utilisateur Supabase non authentifié."
+      );
     }
+
+    // 6. Enregistrement du profil
+    currentStep = "Enregistrement du profil";
+    setProfileStatus(currentStep + "...");
 
     const normalizedAddress = signerAddress.toLowerCase();
 
@@ -353,16 +381,23 @@ const signature = await walletProvider.request({
         display_name: "HYPERNOVA User"
       });
 
-    if (profileError && profileError.code !== "23505") {
+    if (
+      profileError &&
+      profileError.code !== "23505"
+    ) {
       throw profileError;
     }
 
-    const { data: walletLink, error: lookupError } = await supabase
-      .from("wallets")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("address", normalizedAddress)
-      .maybeSingle();
+    // 7. Vérification du wallet enregistré
+    currentStep = "Vérification du wallet";
+
+    const { data: walletLink, error: lookupError } =
+      await supabase
+        .from("wallets")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("address", normalizedAddress)
+        .maybeSingle();
 
     if (lookupError) throw lookupError;
 
@@ -370,52 +405,74 @@ const signature = await walletProvider.request({
       const { error: walletError } = await supabase
         .from("wallets")
         .insert({
-  id: crypto.randomUUID(),
-  user_id: userId,
-  address: normalizedAddress,
-  chain_id: chainId,
-  verified: false
-});
+          id: crypto.randomUUID(),
+          user_id: userId,
+          address: normalizedAddress,
+          chain_id: chainId,
+          verified: false
+        });
 
       if (walletError) throw walletError;
     }
 
-    const { data: profile, error: readError } = await supabase
-      .from("profiles")
-      .select("id, username, display_name")
-      .eq("id", userId)
-      .single();
+    // 8. Lecture du profil
+    currentStep = "Lecture du profil";
+
+    const { data: profile, error: readError } =
+      await supabase
+        .from("profiles")
+        .select("id, username, display_name")
+        .eq("id", userId)
+        .single();
 
     if (readError) throw readError;
 
     setProfileData(profile);
-    setProfileStatus("Profil HYPERNOVA enregistré avec succès.");
+
+    // 9. Attribution des XP
+    currentStep = "Attribution des XP";
+    setProfileStatus(currentStep + "...");
+
     const { data: xpAward, error: xpAwardError } =
-  await supabase.functions.invoke("clever-action", {
-    body: {},
-  });
+      await supabase.functions.invoke("clever-action", {
+        body: {}
+      });
 
-if (xpAwardError) {
-  console.error("Erreur attribution XP :", xpAwardError);
+    if (xpAwardError) {
+      console.error("Erreur attribution XP :", xpAwardError);
 
-  setProfileStatus(
-    "Erreur attribution XP : " +
-    (xpAwardError.message || String(xpAwardError))
-  );
-}else {
-  console.log("Résultat récompense XP :", xpAward);
-  setProfileStatus(
-    "Profil enregistré. " + (xpAward?.message || "Vérification des XP terminée.")
-  );
-}
+      setProfileStatus(
+        "Profil enregistré, mais erreur XP : " +
+        xpAwardError.message
+      );
+    } else {
+      console.log("Résultat récompense XP :", xpAward);
+
+      setProfileStatus(
+        "Profil enregistré. " +
+        (xpAward?.message || "Vérification des XP terminée.")
+      );
+    }
 
   } catch (error) {
-    console.error("Erreur profil HYPERNOVA :", error);
-    setProfileStatus("Erreur : " + (error.message || String(error)));
+    console.error(
+      "Erreur HYPERNOVA à l'étape :",
+      currentStep,
+      error
+    );
+
+    setProfileStatus(
+      "ÉCHEC À L'ÉTAPE : " +
+      currentStep +
+      " — " +
+      (error.message || String(error))
+    );
+
   } finally {
     setSyncingProfile(false);
   }
-}
+          }
+  
   async function loadXP() {
   setXpLoading(true);
   setXpError("");
