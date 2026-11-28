@@ -471,23 +471,30 @@ if (providerAddress.toLowerCase() !== signerAddress.toLowerCase()) {
     }
 
   } catch (error) {
-    console.error(
-      "Erreur HYPERNOVA à l'étape :",
-      currentStep,
-      error
-    );
+  const params = error?.info?.payload?.params;
 
-    setProfileStatus(
-      "ÉCHEC À L'ÉTAPE : " +
-      currentStep +
-      " — " +
-      (error.message || String(error))
-    );
+  const diagnostic = Array.isArray(params)
+    ? params.map((p, i) => {
+        const value = String(p);
+        const isAddress = /^0x[a-fA-F0-9]{40}$/.test(value);
 
-  } finally {
-    setSyncingProfile(false);
+        return "Paramètre " + i +
+          " : longueur " + value.length +
+          ", adresse valide : " + isAddress;
+      }).join(" | ")
+    : "Paramètres non accessibles";
+
+  console.error("Diagnostic signature :", error);
+
+  setProfileStatus(
+    "Erreur signature : " +
+    (error.message || String(error)) +
+    " | " + diagnostic
+  );
+
+} finally {
+  setSyncingProfile(false);
   }
-          }
   
   async function loadXP() {
   setXpLoading(true);
