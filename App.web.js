@@ -293,6 +293,13 @@ async function syncWalletProfile(walletAddress) {
     const providerAccounts = await walletProvider.request({
   method: "eth_accounts"
 });
+    console.log("Diagnostic signature :", {
+  compteDisponible: Array.isArray(providerAccounts),
+  nombreDeComptes: providerAccounts?.length,
+  adresseValide: /^0x[a-fA-F0-9]{40}$/.test(signerAddress),
+  compteCorrespond:
+    providerAccounts?.[0]?.toLowerCase() === signerAddress.toLowerCase()
+});
 
 console.log("Comptes du fournisseur :", providerAccounts);
 console.log("Adresse Ethers :", signerAddress);
