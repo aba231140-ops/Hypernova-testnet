@@ -286,6 +286,9 @@ console.log("Adresse du wallet connecté :", walletAddress);
 console.log("Fournisseur disponible :", !!walletProvider);
 
     console.log("HYPERNOVA adresse signataire :", signerAddress);
+    console.log("Adresse utilisée pour signer :", signerAddress);
+console.log("Adresse du wallet connecté :", walletAddress);
+console.log("Fournisseur disponible :", !!walletProvider);
 
     if (signerAddress.toLowerCase() !== walletAddress.toLowerCase()) {
       throw new Error("Le wallet signataire ne correspond pas au wallet connecté.");
