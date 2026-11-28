@@ -374,6 +374,19 @@ const uri = "https://hypernova-testnet.vercel.app/";
 
     setProfileData(profile);
     setProfileStatus("Profil HYPERNOVA enregistré avec succès.");
+    const { data: xpAward, error: xpAwardError } =
+  await supabase.functions.invoke("clever-action", {
+    body: {},
+  });
+
+if (xpAwardError) {
+  console.error("Erreur attribution XP :", xpAwardError);
+} else {
+  console.log("Résultat récompense XP :", xpAward);
+  setProfileStatus(
+    "Profil enregistré. " + (xpAward?.message || "Vérification des XP terminée.")
+  );
+}
 
   } catch (error) {
     console.error("Erreur profil HYPERNOVA :", error);
