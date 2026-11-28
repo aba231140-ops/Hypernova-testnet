@@ -290,6 +290,28 @@ async function syncWalletProfile(walletAddress) {
     const signerAddress = getAddress(
       await signer.getAddress()
     );
+    const providerAccounts = await walletProvider.request({
+  method: "eth_accounts"
+});
+
+console.log("Comptes du fournisseur :", providerAccounts);
+console.log("Adresse Ethers :", signerAddress);
+
+if (!Array.isArray(providerAccounts) || providerAccounts.length === 0) {
+  throw new Error("Aucun compte disponible dans le fournisseur.");
+}
+
+const providerAddress = getAddress(providerAccounts[0]);
+
+if (providerAddress.toLowerCase() !== signerAddress.toLowerCase()) {
+  throw new Error("Les adresses du fournisseur et d'Ethers sont différentes.");
+}
+
+setProfileStatus(
+  "Diagnostic réussi : les adresses du fournisseur et d'Ethers correspondent."
+);
+
+throw new Error("Fin du diagnostic temporaire.");
 
     const connectedAddress = getAddress(walletAddress);
 
